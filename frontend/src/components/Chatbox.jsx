@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { sendMessage as sendToAPI } from '../api/chatService';
 
 const Chatbox = ({ sessionId }) => {
   const [input, setInput] = useState('');
@@ -8,12 +8,8 @@ const Chatbox = ({ sessionId }) => {
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const res = await axios.post('http://localhost:8000/chat/', {
-      user_id: userId,
-      session_id: sessionId,
-      message: input
-    });
-    setMessages(res.data);
+    const res = await sendToAPI(sessionId, userId, input);
+    setMessages(res);
     setInput('');
   };
 

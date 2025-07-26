@@ -1,8 +1,17 @@
 from fastapi import FastAPI
-from backend.routes.chat import router as chat_router
+from fastapi.middleware.cors import CORSMiddleware
+from backend.api.routes import router as chat_router  # updated import
 
+app = FastAPI()
 
-app = FastAPI(title="E-commerce Chatbot Backend")
+# CORS setup
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Update with frontend URL for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Register chat routes
-app.include_router(chat_router, prefix="/chat", tags=["Chat"])
+# Include chat router
+app.include_router(chat_router)

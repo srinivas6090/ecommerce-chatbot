@@ -1,21 +1,34 @@
-import os
-from pathlib import Path
-from dotenv import load_dotenv
 from pymongo import MongoClient
+from datetime import datetime
+import os
+from dotenv import load_dotenv
 
-# DEBUG: Print where we're loading the .env from
-env_path = Path(__file__).resolve().parents[2] / ".env"
-print("Looking for .env at:", env_path)
+load_dotenv()
 
-# Load environment variables
-load_dotenv(dotenv_path=env_path)
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+DB_NAME = os.getenv("DB_NAME", "ecommerce_chatbot")
 
-# DEBUG: Print values
-MONGO_URI = os.getenv("MONGO_URI")
-DB_NAME = os.getenv("DB_NAME")
-print("MONGO_URI:", MONGO_URI)
-print("DB_NAME:", DB_NAME)
-
-# Connect
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
+messages_collection = db["messages"]
+
+def save_message(user_id, session_id, message, sender):
+    data = {
+        "user_id": user_id,
+        "session_id": session_id,
+        "text": message,
+        "sender": sender,
+        "timestamp": datetime.utcnow()
+    }
+    messages_collection.insert_one(data)
+
+def get_messages(session_id):
+    messages = messages_collection.find({"session_id": session_id}).sort("timestamp", 1)
+    return [
+        {
+            "text": msg["text"],
+            "sender": msg["sender"],
+            "timestamp": msg["timestamp"]
+        }
+        for msg in messages
+    ]

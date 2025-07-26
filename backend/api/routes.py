@@ -1,15 +1,21 @@
-from fastapi import APIRouter
-from db.connection import db
-from models.schemas import Product, Order
+from fastapi import APIRouter, Request
+from backend.db.connection import save_message, get_messages
 
-router = APIRouter()
+router = APIRouter(prefix="/chat")
 
-@router.get("/products", response_model=list[Product])
-def get_products():
-    data = list(db.products.find({}, {"_id": 0}))
-    return data
+@router.post("/")
+async def chat_endpoint(request: Request):
+    data = await request.json()
+    session_id = data.get("session_id")
+    user_msg = data.get("message")
 
-@router.get("/orders", response_model=list[Order])
-def get_orders():
-    data = list(db.orders.find({}, {"_id": 0}))
-    return data
+    # Save user message
+    save_message(session_id, "user", user_msg)
+
+    # Dummy AI response
+    ai_response = f"Echo: {user_msg}"
+    save_message(session_id, "ai", ai_response)
+
+    # Return full chat history
+    history = get_messages(session_id)
+    return history
